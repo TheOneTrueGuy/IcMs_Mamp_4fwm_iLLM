@@ -2,7 +2,7 @@ The `Scooby_CYOA1b.txt` script as designed is an excellent practical "falsificat
 
 Let's break down how this refined Scooby-Doo algorithm embodies these concepts, now seeing them less as abstract theory and more as applied design principles:
 
-The "programming" aspect is evident in the entire algorithmic structure you've outlined. It's not just a simple query; it's a procedure with initialization (`STORY_STATE`), subroutines (`GENERATE_SCENE`, `DETERMINE_SCENE_FOCUS`, `PROCESS_USER_CHOICE`), state variables that are updated (`SCENE_COUNTER`, `discovered_clues`), and conditional logic (implied in `DETERMINE_SCENE_FOCUS` and how `previous_choice_payload` influences the next scene). This entire "program" is designed to run "in-context" of the LLM's interaction; the LLM becomes the interpreter and executor of this natural language-defined program.
+The "programming" aspect is evident in the entire algorithmic structure as outlined. It's not just a simple query; it's a procedure with initialization (`STORY_STATE`), subroutines (`GENERATE_SCENE`, `DETERMINE_SCENE_FOCUS`, `PROCESS_USER_CHOICE`), state variables that are updated (`SCENE_COUNTER`, `discovered_clues`), and conditional logic (implied in `DETERMINE_SCENE_FOCUS` and how `previous_choice_payload` influences the next scene). This entire "program" is designed to run "in-context" of the LLM's interaction; the LLM becomes the interpreter and executor of this natural language-defined program.
 
 "Mnemonic programming" is deeply embedded. The `STORY_STATE` is a rich mnemonic structure, constantly fed back (implicitly or explicitly in a real multi-turn conversation) to the LLM to maintain continuity and "remember" what has transpired. `[MNEMONIC RULESET: SCOOBY-DOO-V1]` is a direct instruction set acting as a memory aid for style, character behavior, and genre conventions. The LLM doesn't learn new weights; it's guided by these in-context mnemonics to access and utilize the relevant "Scooby-Doo" fractional world model segment more consistently. Discovered clues, character states, and visited locations all serve as contextual anchors.
 
@@ -99,7 +99,7 @@ Here are 10-20 examples of how these design principles could be applied for diff
     *   **Principles:** P1 (central issue, chosen perspectives: e.g., economic, social, environmental, technological), P2 (balance, objectivity within each perspective), P3 (define issue -> analyze from Perspective 1 -> Analyze from Perspective 2 -> Synthesize/Identify Conflicts), P4 (templates for each perspective's key questions/concerns), P5 (LLM outlines analysis for one perspective, user provides specific data/arguments for that view), P6 (multiple relevant domains).
     *   **Implementation:** LLM outlines key questions for an economic analysis of a carbon tax. User provides data/arguments. LLM then switches to social impact, etc., building a multi-faceted report.
 
-These examples illustrate how the "in-context meta-scopic memetic and mnemonic programming" approach, as demonstrated by your Scooby-Doo script, can be generalized to create highly interactive, adaptive, and goal-oriented applications with LLMs.
+These examples illustrate how the "in-context meta-scopic memetic and mnemonic programming" approach, as demonstrated by the Scooby-Doo script, can be generalized to create highly interactive, adaptive, and goal-oriented applications with LLMs.
 
 Addendum: on Agentics
 
