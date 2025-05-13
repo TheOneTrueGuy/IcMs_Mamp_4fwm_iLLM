@@ -4,7 +4,7 @@
 # (Remains the same: Generate interactive Scooby-Doo mystery, 5 scenes, user choices)
 
 # Style & Content Rules
-# (Remains the same, [MNEMONIC RULESET: SCOOBY-DOO-V1] is key)
+# [MNEMONIC RULESET: SCOOBY-DOO-V1]
 # - Include Scooby, Shaggy, Fred, Daphne, Velma. Reference at least 3 per scene.
 # - If GUEST_STAR is present, include them meaningfully.
 # - Setting: Dynamically set by LOCATION_SETTING.
