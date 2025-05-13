@@ -236,4 +236,4 @@ function LLM_GENERATE_CONCLUSION(story_state):
     // ... LLM call using all clues, villain hints, location, monster, guest star to generate the unmasking scene ...
     DISPLAY_TEXT("LLM generated conclusion: And the Ghostly " + story_state["monster_name"] + " was... Mr. Smithers, the caretaker! He " + REASON_FOR_SCHEME(story_state) + "! 'And I would have gotten away with it too, if it weren't for you meddling kids, and your " + (story_state["guest_star_name"] if story_state["guest_star_name"] else "dog") + "!' Scooby-Doo: Scooby Dooby Doo!") // Placeholder
 
-# --- End of Refined Algorithm ---
+# --- End of Algorithm ---
