@@ -1,0 +1,239 @@
+# Scooby-Doo Choose Your Own Adventure Algorithm (Progressive Prompting - Refined)
+
+# Overall Goal & Interaction Pattern
+# (Remains the same: Generate interactive Scooby-Doo mystery, 5 scenes, user choices)
+
+# Style & Content Rules
+# (Remains the same, [MNEMONIC RULESET: SCOOBY-DOO-V1] is key)
+# - Include Scooby, Shaggy, Fred, Daphne, Velma. Reference at least 3 per scene.
+# - If GUEST_STAR is present, include them meaningfully.
+# - Setting: Dynamically set by LOCATION_SETTING.
+# - Involve a mystery (e.g., "Ghostly [Monster_Type]" or related spooky events, hinted as fake).
+# - Focus on finding clues or noticing suspicious things.
+# - Use lighthearted, slightly goofy language. Incorporate catchphrases.
+# - Maintain low stakes; the tone is adventurous, not terrifying.
+
+# Initialization Block
+Print "Created by Guy Giesbrecht, copyright and left inperpetuity and across all dimensions of time and space"
+Initialize:
+    SCENE_COUNTER = 1
+    MAX_SCENES = 5
+    LOCATION_SETTING = "The Abandoned Fogbottom Lighthouse and its surroundings" // Example, can be changed at runtime
+    POSSIBLE_GUEST_STARS = ["Jonathan Winters", "Vincent Price", "Phyllis Diller", None, None] // Array to pick from, None means no guest star
+    SELECTED_GUEST_STAR = RANDOM_CHOICE(POSSIBLE_GUEST_STARS)
+    MONSTER_TYPE = "Ghostly Fisherman" // Example, can be themed to location
+
+    STORY_STATE = {
+        "current_location_narrative": "Outside the " + LOCATION_SETTING, // Initial location description
+        "discovered_clues": [], // List of clue objects/descriptions
+        "visited_locations_tags": [], // Tags for locations (e.g., "lighthouse_interior", "fish_shack")
+        "character_states": {
+            "Scooby": "nervous",
+            "Shaggy": "hungry",
+            "Fred": "leaderly",
+            "Velma": "analytical",
+            "Daphne": "observant"
+        },
+        "mystery_progress": 0,  // 0-100%
+        "villain_hints": 0,
+        "current_scene_tag": "arrival", // e.g., "arrival", "investigation_A", "chase", "trap_setting"
+        "guest_star_name": SELECTED_GUEST_STAR,
+        "monster_name": "The Ghostly " + MONSTER_TYPE
+    }
+    if SELECTED_GUEST_STAR is not None:
+        STORY_STATE["character_states"][SELECTED_GUEST_STAR] = "guest_default" // e.g., "quippy", "spooked", "helpful"
+
+# Scene Blueprints / Templates (Conceptual)
+# These guide the LLM's generation for different types of scenes.
+# Each blueprint might suggest:
+# - Typical character roles/actions for that scene type
+# - Types of clues that might be found
+# - Common spooky events suitable for the scene type
+# - Potential branching outcomes based on archetypal choices
+# Example Blueprints:
+#   - "Arrival_And_Initial_Spook": Gang arrives, first strange event.
+#   - "Focused_Investigation_Clue": Gang investigates a specific area, finds a key clue.
+#   - "Split_Up_Encounter": Gang splits, one group encounters the "monster" or a red herring.
+#   - "Chase_Scene": Monster appears, classic Scooby & Shaggy chase.
+#   - "Trap_Planning": Fred devises a (likely flawed) plan.
+#   - "Near_Miss_Or_Confrontation": Gang nearly catches monster or has a direct (but non-conclusive) encounter.
+#   - "Reveal_And_Resolution_Approach": Clues start pointing to the culprit.
+
+# --- Main Algorithm ---
+
+# Scene Generation Subroutine
+function GENERATE_SCENE(scene_number, previous_choice_data, story_state):
+    # 1. Determine Current Scene Focus & Location based on previous choice and story_state
+    #    (This replaces the simple if scene_number == 1 logic)
+    scene_focus_data = DETERMINE_SCENE_FOCUS(previous_choice_data, story_state)
+    # scene_focus_data might include:
+    #   - "next_location_tag": e.g., "lighthouse_tower", "creepy_cellar"
+    #   - "next_scene_type_hint": e.g., "clue_discovery_focused", "monster_encounter"
+    #   - "triggering_character_focus": e.g., "Velma_led_investigation"
+
+    story_state["current_scene_tag"] = scene_focus_data["next_scene_type_hint"]
+    story_state["current_location_narrative"] = GET_NARRATIVE_FOR_LOCATION(scene_focus_data["next_location_tag"])
+    
+    # 2. Generate Scene Narrative using LLM
+    #    Input to LLM:
+    #       - story_state (current clues, characters, guest star, monster, overall progress)
+    #       - scene_focus_data (target location, type of scene expected)
+    #       - scene_number
+    #       - [MNEMONIC RULESET: SCOOBY-DOO-V1]
+    #       - Relevant Scene Blueprint hints
+    scene_narrative_elements = LLM_GENERATE_NARRATIVE_ELEMENTS(
+        scene_number,
+        story_state,
+        scene_focus_data,
+        // Hint to LLM: "Generate 1-2 paragraphs. Describe [location]. Involve [characters]. A [spooky event type] happens OR they find/discuss [clue type]."
+    )
+    // scene_narrative_elements would be structured data: { text: "...", new_clue_found: "...", spooky_event: "..." }
+
+    # 3. Generate Choices using LLM
+    #    Choices should be distinct and lead to different types of follow-up actions or locations.
+    #    The LLM should be prompted to create 3 choices (A, B, C) that make sense in context.
+    #    Choices should reflect typical Scooby-Doo gang behaviors.
+    generated_choices_text = LLM_GENERATE_CHOICE_TEXTS(
+        scene_narrative_elements["text"], // The generated scene to react to
+        story_state,
+        scene_focus_data["next_location_tag"],
+        // Hint to LLM: "Generate 3 choices. A: Fred-like (direct action/plan). B: Velma/Daphne-like (investigation/observation). C: Shaggy/Scooby-like (food/fear/accidental discovery)."
+    )
+    // generated_choices_text = { A: "Text for A", B: "Text for B", C: "Text for C" }
+
+    # 4. Define Outcome Payloads for Choices
+    #    These are the "behind the scenes" effects of each choice, linking them to next scene types/locations.
+    #    This part still needs some structured logic, even if choice text is LLM-generated.
+    choice_outcomes = DEFINE_CHOICE_OUTCOMES(
+        generated_choices_text,
+        story_state,
+        scene_focus_data["next_location_tag"]
+    )
+    // Example outcome for choice A:
+    // choice_outcomes.A = {
+    //    "next_scene_type_hint": "focused_investigation",
+    //    "next_location_tag_suggestion": "lighthouse_engine_room", // or explore current further
+    //    "story_state_updates": { "mystery_progress_increase": 15, "fred_confidence_boost": true }
+    // }
+
+    # 5. Update Story State (preliminary based on scene generation, more definitive after user choice)
+    if scene_narrative_elements["new_clue_found"] is not None:
+        ADD_CLUE(story_state, scene_narrative_elements["new_clue_found"])
+    if scene_focus_data["next_location_tag"] not in story_state["visited_locations_tags"]:
+        story_state["visited_locations_tags"].append(scene_focus_data["next_location_tag"])
+
+    return {
+        "narrative": scene_narrative_elements["text"],
+        "choices_text": generated_choices_text, // {A: "...", B: "...", C: "..."}
+        "choice_outcomes_payload": choice_outcomes // Data for PROCESS_USER_CHOICE
+    }
+
+# Subroutine to Determine Scene Focus (Crucial for Conditional Logic)
+function DETERMINE_SCENE_FOCUS(previous_choice_data, story_state):
+    // previous_choice_data = the payload from choice_outcomes_payload of the *selected* choice
+    output = {
+        "next_location_tag": story_state["current_location_narrative"], // Default to current if not changed
+        "next_scene_type_hint": "general_continuation",
+        "triggering_character_focus": None
+    }
+
+    if SCENE_COUNTER == 1:
+        output["next_location_tag"] = "initial_arrival_point_at_" + LOCATION_SETTING
+        output["next_scene_type_hint"] = "Arrival_And_Initial_Spook"
+        return output
+
+    // IF-THEN logic based on previous_choice_data and story_state
+    if previous_choice_data is not None:
+        output["next_scene_type_hint"] = previous_choice_data.get("next_scene_type_hint", "general_continuation")
+        output["next_location_tag_suggestion"] = previous_choice_data.get("next_location_tag_suggestion", story_state["current_location_narrative"]) # Use suggestion
+        
+        // More sophisticated logic here:
+        // e.g., if previous_choice_data["next_scene_type_hint"] == "explore_new_area":
+        //    output["next_location_tag"] = SELECT_NEW_UNVISITED_SUB_LOCATION(story_state["current_location_narrative"], story_state["visited_locations_tags"])
+        // else:
+        //    output["next_location_tag"] = previous_choice_data["next_location_tag_suggestion"]
+        output["next_location_tag"] = output["next_location_tag_suggestion"] // Simplified for now
+
+        // Could also add logic: if mystery_progress > 70, next_scene_type_hint = "Trap_Planning" or "Reveal_Approach"
+    else: // Should not happen after scene 1, but as a fallback
+        output["next_location_tag"] = story_state["current_location_narrative"]
+        output["next_scene_type_hint"] = "generic_investigation"
+
+    return output
+
+# Choice Processing Subroutine
+function PROCESS_USER_CHOICE(user_input_ABC, current_scene_data, story_state):
+    selected_outcome_payload = current_scene_data["choice_outcomes_payload"][user_input_ABC]
+
+    // Apply direct story_state updates from the payload
+    if "story_state_updates" in selected_outcome_payload:
+        for key, value in selected_outcome_payload["story_state_updates"].items():
+            if key == "mystery_progress_increase":
+                story_state["mystery_progress"] += value
+            elif key == "new_clue_discovered_by_choice": # A clue specifically tied to making this choice
+                 ADD_CLUE(story_state, value) // value would be the clue description/object
+            elif key in story_state["character_states"]:
+                 UPDATE_CHARACTER_STATE(story_state, key, value) // e.g., Shaggy becomes "less hungry"
+            // Add more specific state updates as needed
+            story_state[key] = value // Generic catch-all, be careful
+
+    story_state["mystery_progress"] = min(100, story_state["mystery_progress"])
+    
+    return selected_outcome_payload // This data is passed as 'previous_choice_data' to the next GENERATE_SCENE
+
+# Helper function to add clues
+function ADD_CLUE(story_state, clue_description):
+    if clue_description not in story_state["discovered_clues"]: // Avoid duplicates if re-described
+        story_state["discovered_clues"].append(clue_description)
+        story_state["villain_hints"] += 1 // Simple increment, could be more nuanced
+
+# Main Loop
+Loop:
+    previous_choice_payload = None // For the first scene
+    while SCENE_COUNTER <= MAX_SCENES:
+        // 1. Generate current scene
+        //    Pass the outcome payload of the *previous* choice to inform the new scene generation
+        current_scene_data = GENERATE_SCENE(SCENE_COUNTER, previous_choice_payload, STORY_STATE)
+        
+        // 2. Internal Check (Simulated - LLM itself should adhere to rules via prompt)
+        // META_CHECK_SCENE_QUALITY(current_scene_data["narrative"], STORY_STATE)
+        
+        // 3. Present scene narrative and choices to user
+        DISPLAY_TEXT(current_scene_data["narrative"])
+        DISPLAY_TEXT("What do you want to do?")
+        DISPLAY_TEXT("A) " + current_scene_data["choices_text"]["A"])
+        DISPLAY_TEXT("B) " + current_scene_data["choices_text"]["B"])
+        DISPLAY_TEXT("C) " + current_scene_data["choices_text"]["C"])
+        
+        // 4. Wait for user input
+        user_choice_ABC = GET_USER_INPUT() // Returns 'A', 'B', or 'C'
+        
+        // 5. Process choice and get data for the next scene
+        previous_choice_payload = PROCESS_USER_CHOICE(user_choice_ABC, current_scene_data, STORY_STATE)
+        
+        SCENE_COUNTER += 1
+        
+        // 6. Check for story conclusion
+        if SCENE_COUNTER > MAX_SCENES or STORY_STATE["mystery_progress"] >= 95: // Adjusted threshold
+            LLM_GENERATE_CONCLUSION(STORY_STATE) // LLM generates unmasking, "meddling kids", etc.
+            break
+    
+    if SCENE_COUNTER <= MAX_SCENES and STORY_STATE["mystery_progress"] < 95:
+        DISPLAY_TEXT("The mystery remains unsolved for now... The End?")
+
+# LLM Wrapper Functions (Conceptual - these represent calls to an LLM)
+function LLM_GENERATE_NARRATIVE_ELEMENTS(scene_number, story_state, scene_focus_data, hints):
+    // ... LLM call to generate paragraph(s), identify if a clue was naturally integrated ...
+    // Returns { text: "...", new_clue_found: "description or None", spooky_event: "description or None" }
+    return { "text": "LLM generated scene text based on inputs...", "new_clue_found": None, "spooky_event": None } // Placeholder
+
+function LLM_GENERATE_CHOICE_TEXTS(scene_text, story_state, current_location, hints):
+    // ... LLM call to generate 3 distinct choice strings ...
+    // Returns { A: "Choice A text", B: "Choice B text", C: "Choice C text" }
+    return { "A": "Fred: Let's check the main entrance.", "B": "Velma: I see tracks near the shore.", "C": "Shaggy: Is that a fish shack? Snacks?" } // Placeholder
+
+function LLM_GENERATE_CONCLUSION(story_state):
+    // ... LLM call using all clues, villain hints, location, monster, guest star to generate the unmasking scene ...
+    DISPLAY_TEXT("LLM generated conclusion: And the Ghostly " + story_state["monster_name"] + " was... Mr. Smithers, the caretaker! He " + REASON_FOR_SCHEME(story_state) + "! 'And I would have gotten away with it too, if it weren't for you meddling kids, and your " + (story_state["guest_star_name"] if story_state["guest_star_name"] else "dog") + "!' Scooby-Doo: Scooby Dooby Doo!") // Placeholder
+
+# --- End of Refined Algorithm ---
